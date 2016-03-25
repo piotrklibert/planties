@@ -1,0 +1,9 @@
+---
+user: cji
+project: planties
+sname: mon
+
+project_path: "{{ home_path }}/poligon/{{ project }}"
+build_root: /home/cji/portless/builds/
+otp_dir: "{{build_root}}/{{otp_basename}}"
+ex_dir: "{{build_root}}/elixir"

@@ -1,0 +1,55 @@
+- include_vars: "config/vars.yml"
+- include_vars: "config/{{ ansible_nodename }}.yml"
+
+- name: "Ensure build directory exists"
+  file: path="{{ build_root }}" state=directory
+
+- get_url:
+    url: http://erlang.org/download/otp_src_18.3.tar.gz
+    dest: "{{otp_dir}}.tar.gz"
+
+- shell: >-
+    tar zxf {{otp_dir}}.tar.gz
+  args:
+    creates: "{{otp_dir}}"
+    chdir: "{{ build_root }}"
+
+- shell: >-
+    ./configure --prefix="/usr"
+  args:
+    creates: "Makefile"
+    chdir: "{{otp_dir}}"
+
+- shell: >-
+    make -j 8 && touch made
+  args:
+    chdir: "{{otp_dir}}"
+    creates: "{{otp_dir}}/made"
+
+- name: "Run make install"
+  shell: >-
+    make install && touch installed
+  args:
+    chdir: "{{otp_dir}}"
+    creates: "{{otp_dir}}/installed"
+  become: yes
+
+- git:
+    repo: https://github.com/elixir-lang/elixir.git
+    dest: "{{ex_dir}}/"
+    update: no
+
+- name: "Run make for Elixir"
+  shell: >-
+    make -j 6 && touch made
+  args:
+    chdir: "{{ex_dir}}"
+    creates: "{{ex_dir}}/made"
+
+- name: "Run make install"
+  shell: >-
+    make install && touch installed
+  args:
+    chdir: "{{ex_dir}}"
+    creates: "{{ex_dir}}/installed"
+  become: yes

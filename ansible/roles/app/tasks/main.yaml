@@ -1,0 +1,37 @@
+---
+
+- include_vars: "config/vars.yml"
+- include_vars: "config/{{ ansible_nodename }}.yml"
+
+- debug:
+    var: ansible_nodename
+
+- package: name=supervisor state=present
+  become: yes
+
+- template:
+    src: "config/run.sh"
+    dest: "{{ project_path }}/run.sh"
+    mode: "0777"
+
+- name: "Uploading code"
+  synchronize:
+    src: "../../planties/"
+    dest: "{{ home_path }}/planties/"
+    rsync_opts:
+      - "--exclude=deps"
+      - "--exclude=_build"
+      - "--exclude=rel"
+  register: sync
+
+- debug:
+    var: sync.stdout_lines
+
+
+- shell: LC_ALL=C.UTF-8 mix deps.get
+  args:
+    chdir: "{{ project_path }}"
+
+- shell: LC_ALL=C.UTF-8 mix compile
+  args:
+    chdir: "{{ project_path }}"

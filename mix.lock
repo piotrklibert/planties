@@ -1,0 +1,10 @@
+%{"bbmustache": {:hex, :bbmustache, "1.0.1"},
+  "conform": {:hex, :conform, "0.16.0"},
+  "elixir_ale": {:hex, :elixir_ale, "0.4.1"},
+  "erlware_commons": {:hex, :erlware_commons, "0.13.0"},
+  "exrm": {:hex, :exrm, "0.18.8"},
+  "getopt": {:hex, :getopt, "0.8.2"},
+  "neotoma": {:hex, :neotoma, "1.7.3"},
+  "pattern_tap": {:git, "git@github.com:mgwidmann/elixir-pattern_tap.git", "37eb49a3b21daf165d491f77beefb665d81b2329", []},
+  "providers": {:hex, :providers, "1.4.1"},
+  "relx": {:hex, :relx, "3.1.0"}}
