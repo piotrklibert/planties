@@ -10,3 +10,4 @@
   roles:
     - system
     - {role: app, tags: update}
+    - {role: run, tags: run}

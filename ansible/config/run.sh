@@ -1,3 +1,3 @@
 #! /bin/bash
 
-LC_ALL=C.UTF-8 MIX_ENV=pi iex --cookie {{ cookie }} --sname {{ sname }} -S mix
+{{ locale }} ERLANG_HOME={{ otp_dir }} MIX_ENV={{mix_env}} iex --cookie {{ cookie }} --sname {{ sname }} -S mix

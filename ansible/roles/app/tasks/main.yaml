@@ -1,18 +1,5 @@
----
-
 - include_vars: "config/vars.yml"
 - include_vars: "config/{{ ansible_nodename }}.yml"
-
-- debug:
-    var: ansible_nodename
-
-- package: name=supervisor state=present
-  become: yes
-
-- template:
-    src: "config/run.sh"
-    dest: "{{ project_path }}/run.sh"
-    mode: "0777"
 
 - name: "Uploading code"
   synchronize:
@@ -22,16 +9,27 @@
       - "--exclude=deps"
       - "--exclude=_build"
       - "--exclude=rel"
-  register: sync
+      - "--exclude=.git"
+      - "--exclude=run.sh"
 
-- debug:
-    var: sync.stdout_lines
+- name: "Generate run.sh script"
+  template:
+    src: "config/run.sh"
+    dest: "{{ project_path }}/run.sh"
+    mode: "0777"
 
+- name: "Generate console.sh script"
+  template:
+    src: "config/console.sh"
+    dest: "{{ project_path }}/console.sh"
+    mode: "0777"
 
-- shell: LC_ALL=C.UTF-8 mix deps.get
+- name: "Get mix deps"
+  shell: mix deps.get
   args:
     chdir: "{{ project_path }}"
 
-- shell: LC_ALL=C.UTF-8 mix compile
+- name: "Mix compile"
+  shell: mix compile
   args:
     chdir: "{{ project_path }}"

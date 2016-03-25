@@ -1,0 +1,4 @@
+---
+
+- include_vars: "config/vars.yml"
+- include_vars: "config/{{ ansible_nodename }}.yml"
