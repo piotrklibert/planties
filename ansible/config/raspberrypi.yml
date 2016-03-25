@@ -1,6 +1,8 @@
 user: pi
 project: planties
 sname: "planties"
+mix_env: "pi"
+locale: LC_ALL=C.UTF-8
 
 repo_path: "{{ inventory_dir }}"
 home_path: "/home/{{ user }}/"

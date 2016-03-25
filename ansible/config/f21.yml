@@ -2,6 +2,7 @@
 user: cji
 project: planties
 sname: mon
+mix_env: f21
 
 project_path: "{{ home_path }}/poligon/{{ project }}"
 build_root: /home/cji/portless/builds/
