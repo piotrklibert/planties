@@ -1,4 +1,10 @@
 defmodule Util do
+  defmodule Queue do
+    def add([a, b, _], d), do: [d, a, b]
+    def add([a, b], c), do: [c, a, b]
+    def add([a], b), do: [b, a]
+    def add([], a), do: [a]
+  end
   def id(x), do: x
 end
 
@@ -57,9 +63,6 @@ defmodule LED do
     # File.write! @dir <> "/export", "18"
     File.write! @dir <> "/gpio18/direction", "out"
   end
-
-
-
 end
 
 
@@ -90,21 +93,24 @@ defmodule HumiditySensor do
   @adc_id 0x6A
   @agent {:global, :humidity}
 
-  def make_command(chan) do
-    << 0 :: size(1),
-    chan :: size(2),
-    1 :: size(1),
-    2 :: size(2),
-    0 :: size(2) >>
-  end
 
-  def print_command(<< rdy :: size(1),
-                    chan :: size(2),
-                    oc :: size(1),
-                    sample :: size(2),
-                    pga :: size(2) >>) do
+  def print_command(<<
+      rdy    :: size(1),
+      chan   :: size(2),
+      oc     :: size(1),
+      sample :: size(2),
+      pga    :: size(2)
+  >>) do
     IO.inspect [rdy, chan, oc, sample, pga]
   end
+
+  def make_command(chan), do: <<
+    0    :: size(1),
+    chan :: size(2),
+    1    :: size(1),
+    2    :: size(2),
+    0    :: size(2)
+  >>
 
   def main() do
     GenServer.start_link Agent.Server, fn () -> 0 end, name: @agent
@@ -113,19 +119,13 @@ defmodule HumiditySensor do
     loop(pid, 0)
   end
 
-  defmodule Queue do
-    def add([a, b, _], d), do: [d, a, b]
-    def add([a, b], c), do: [c, a, b]
-    def add([a], b), do: [b, a]
-    def add([], a), do: [a]
-  end
 
   def update_val(prev_val, val), do: val
 
   def loop(pid, state) do
     I2c.write(pid, make_command(1))
     << _sign :: size(1),
-       val  :: size(15),
+       val   :: size(15),
        _conf :: size(8) >> = I2c.read(pid, 3)
 
     # see:

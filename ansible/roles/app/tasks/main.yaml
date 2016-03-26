@@ -11,25 +11,30 @@
       - "--exclude=rel"
       - "--exclude=.git"
       - "--exclude=run.sh"
+      - "--exclude=rel/planties/"
 
-- name: "Generate run.sh script"
+- name: "Generate vm.args"
   template:
-    src: "config/run.sh"
-    dest: "{{ project_path }}/run.sh"
-    mode: "0777"
+    src: "config/vm.args"
+    dest: "{{ project_path }}/rel/vm.args"
 
-- name: "Generate console.sh script"
-  template:
-    src: "config/console.sh"
-    dest: "{{ project_path }}/console.sh"
-    mode: "0777"
+- file:
+    path: "{{ project_path }}/rel/planties"
+    state: "absent"
 
 - name: "Get mix deps"
   shell: mix deps.get
   args:
     chdir: "{{ project_path }}"
 
+
 - name: "Mix compile"
   shell: mix compile
+  args:
+    chdir: "{{ project_path }}"
+
+- name: "Build Elixir release"
+  shell:
+    MIX_ENV={{ mix_env }} mix release
   args:
     chdir: "{{ project_path }}"
