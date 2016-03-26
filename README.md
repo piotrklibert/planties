@@ -1,24 +1,20 @@
-# Planties
+# PLANTies
 
-**TODO: Add description**
+This is a little, distributed Elixir program for monitoring and commanding
+Raspberry PI.
 
-## Installation
+# Use
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
+You need to start one instance of the project on the RPI, like this:
 
-  1. Add `planties` to your list of dependencies in `mix.exs`:
+    MIX_ENV=pi iex --cookie <cookie_string> --sname planties -S mix
 
-    ```elixir
-    def deps do
-      [{:planties, "~> 0.0.1"}]
-    end
-    ```
+and on any other system within the network:
 
-  2. Ensure `planties` is started before your application:
+    MIX_ENV=pi iex --cookie <cookie_string> --sname planties -S mix
 
-    ```elixir
-    def application do
-      [applications: [:planties]]
-    end
-    ```
+You can verify it works by writing:
 
+    LED.blink_many 10
+
+in either console.
