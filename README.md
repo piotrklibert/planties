@@ -18,3 +18,7 @@ You can verify it works by writing:
     LED.blink_many 10
 
 in either console.
+
+# TODO
+
+1. [] IR-controller implementation

@@ -18,7 +18,8 @@ defmodule Planties do
 
   def children(:pi), do: [
     worker(LED, []),
-    worker(HumiditySensor, [])
+    worker(HumiditySensor, []),
+    worker(Buzzer, [])
   ]
   def children(env), do: []
 end

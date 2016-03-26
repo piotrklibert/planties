@@ -1,9 +1,9 @@
-defmodule LED do
+defmodule Power do
   use GenServer
 
-  @global_name {:global, :led}
+  @global_name {:global, :power}
   @dir "/sys/class/gpio"
-  @pin "18"
+  @pin "21"
   @val_file "#{@dir}/gpio#{@pin}/value"
 
 
@@ -14,31 +14,23 @@ defmodule LED do
         File.write! "#{@dir}/gpio#{@pin}/direction", "out"
         GenServer.start_link __MODULE__, nil, name: @global_name
       _ ->
-        raise "LED server can only run on Raspberry!"
+        raise "Power manager server can only run on Raspberry!"
     end
   end
 
-  def blink(time \\ 400) do
-    GenServer.call @global_name, {:blink, time}
-  end
-
-  def blink_many(times, wait \\ 400) do
-    for _ <- 1 .. times do
-      blink()
-      receive do after wait -> :ok end
-    end
-    :ok
-  end
-
+  def switch(state) do
+    GenServer.call @global_name, state
 
 
   # Server section
   # ----------------------------------------------------------------------------
 
-  def handle_call({:blink, time}, _from, state) do
+  def handle_call({:off, time}, _from, state) do
     Util.turn_on(@val_file)
-    receive do after time -> :ok end
-    Util.turn_off(@val_file)
-    {:reply, :ok, state}
   end
+
+  def handle_call({:off, time}, _from, state) do
+    Util.turn_off(@val_file)
+  end
+
 end
