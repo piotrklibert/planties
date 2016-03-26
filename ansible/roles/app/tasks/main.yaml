@@ -1,5 +1,11 @@
 - include_vars: "config/vars.yml"
+  tags:
+    - restart
+    - build
 - include_vars: "config/{{ ansible_nodename }}.yml"
+  tags:
+    - restart
+    - build
 
 - name: "Uploading code"
   synchronize:
@@ -18,23 +24,41 @@
     src: "config/vm.args"
     dest: "{{ project_path }}/rel/vm.args"
 
-- file:
-    path: "{{ project_path }}/rel/planties"
-    state: "absent"
 
 - name: "Get mix deps"
   shell: mix deps.get
   args:
     chdir: "{{ project_path }}"
 
-
 - name: "Mix compile"
   shell: mix compile
   args:
     chdir: "{{ project_path }}"
 
+- name: "Remove previous release"
+  tags: build
+  file:
+    path: "{{ project_path }}/rel/planties"
+    state: "absent"
+
 - name: "Build Elixir release"
   shell:
     MIX_ENV={{ mix_env }} mix release
+  tags: build
   args:
     chdir: "{{ project_path }}"
+
+- name: "Stop Elixir"
+  tags: restart
+  shell:
+    rel/planties/bin/planties stop || true
+  args:
+    chdir: "{{ project_path }}"
+
+- name: "Start Elixir"
+  tags: restart
+  shell:
+    rel/planties/bin/planties start
+  args:
+    chdir: "{{ project_path }}"
+  when: ansible_nodename != "f21"

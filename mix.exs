@@ -14,7 +14,7 @@ defmodule Planties.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :mix],
+    [applications: [:logger, :mix, :elixir_ale, :pattern_tap],
      mod: {Planties, []}]
   end
 
