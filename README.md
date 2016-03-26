@@ -1,7 +1,7 @@
 # PLANTies
 
 This is a little, distributed Elixir program for monitoring and commanding
-Raspberry PI.
+Raspberry PI. I wrote it for monitoring my plants, hence the name.
 
 # Use
 
