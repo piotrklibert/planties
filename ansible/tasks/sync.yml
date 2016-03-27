@@ -1,0 +1,11 @@
+- name: "Uploading code"
+  synchronize:
+    src: "../../planties/"
+    dest: "{{ home_path }}/planties/"
+    rsync_opts:
+      - "--exclude=deps"
+      - "--exclude=_build"
+      - "--exclude=rel"
+      - "--exclude=.git"
+      - "--exclude=run.sh"
+      - "--exclude=rel/planties/"

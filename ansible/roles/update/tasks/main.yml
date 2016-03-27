@@ -1,0 +1,6 @@
+- include_vars: "config/vars.yml"
+- include_vars: "config/{{ ansible_nodename }}.yml"
+
+- include: "tasks/sync.yml"
+
+- include: "tasks/restart_release.yml"

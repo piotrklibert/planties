@@ -1,0 +1,14 @@
+- name: "Stop Elixir"
+  tags: restart
+  shell:
+    rel/planties/bin/planties stop || true
+  args:
+    chdir: "{{ project_path }}"
+
+- name: "Start Elixir"
+  tags: restart
+  shell:
+    rel/planties/bin/planties start
+  args:
+    chdir: "{{ project_path }}"
+  when: ansible_nodename != "f21"

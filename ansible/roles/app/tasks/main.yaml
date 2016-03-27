@@ -7,17 +7,7 @@
     - restart
     - build
 
-- name: "Uploading code"
-  synchronize:
-    src: "../../planties/"
-    dest: "{{ home_path }}/planties/"
-    rsync_opts:
-      - "--exclude=deps"
-      - "--exclude=_build"
-      - "--exclude=rel"
-      - "--exclude=.git"
-      - "--exclude=run.sh"
-      - "--exclude=rel/planties/"
+- include: "tasks/sync.yml"
 
 - name: "Generate vm.args"
   template:
@@ -43,22 +33,9 @@
 
 - name: "Build Elixir release"
   shell:
-    MIX_ENV={{ mix_env }} mix release
+    MIX_ENV={{ mix_env }} mix release --dev
   tags: build
   args:
     chdir: "{{ project_path }}"
 
-- name: "Stop Elixir"
-  tags: restart
-  shell:
-    rel/planties/bin/planties stop || true
-  args:
-    chdir: "{{ project_path }}"
-
-- name: "Start Elixir"
-  tags: restart
-  shell:
-    rel/planties/bin/planties start
-  args:
-    chdir: "{{ project_path }}"
-  when: ansible_nodename != "f21"
+- include: "tasks/restart_release.yml"

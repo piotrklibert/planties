@@ -10,7 +10,9 @@ defmodule Planties do
     case :net_adm.ping @rpi_name do
       :pong -> :ok
       :pang ->
-        IO.inspect "WARNING: We're not on Raspberry and #{@rpi_name} not running!"
+        IO.inspect(
+          "WARNING: We're not on Raspberry and #{@rpi_name} is not running!"
+        )
     end
 
     Supervisor.start_link children(Mix.env), strategy: :one_for_one
@@ -18,8 +20,11 @@ defmodule Planties do
 
   def children(:pi), do: [
     worker(LED, []),
-    worker(HumiditySensor, []),
-    worker(Buzzer, [])
+    worker(Humidity, []),
+    worker(Buzzer, []),
+    worker(Power, []),
+    worker(Ir, []),
+    worker(Temp, [])
   ]
-  def children(env), do: []
+  def children(_env), do: []
 end

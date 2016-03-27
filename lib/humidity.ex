@@ -1,4 +1,4 @@
-defmodule HumiditySensor do
+defmodule Humidity do
   @moduledoc """
   See [1] for the Anolog/Digital Converter details. We use [2] as a way of
   communicating with I2C device, it needs i2c support to be enabled in the
@@ -15,15 +15,16 @@ defmodule HumiditySensor do
   @global_name {:global, :humidity}
 
   @adc_id 0x6A
-  @lsb 0.000625                 # A/C conversion resolution
+  @lsb 0.000625                 # A/C conversion resolution in Volts
 
 
   def start_link() do
     IO.inspect "Starting I2C handling..."
     {:ok, pid} = I2c.start_link("i2c-1", @adc_id)
-    GenServer.start_link(HumiditySensor, pid, name: @global_name)
+    GenServer.start_link(__MODULE__, pid, name: @global_name)
   end
 
+  def get(), do: GenServer.call @global_name, :get
 
   # Server API
 
@@ -32,6 +33,8 @@ defmodule HumiditySensor do
     resp = I2c.read i2c_pid, 3   # read 3 bytes
 
     << _sign :: size(1), val :: size(15), _conf :: size(8) >> = resp
+    # TODO: do something clever with the sign value. What is 'two's complement',
+    # anyway?
     input_voltage = val * @lsb
 
     {:reply, input_voltage, i2c_pid}
@@ -44,5 +47,4 @@ defmodule HumiditySensor do
     2    :: size(2),     # how many bits to use for transfer, 2 means 16 bits
     0    :: size(2)      # Programmable Gain Amplifier, 0 means 1x amplification
   >>
-
 end

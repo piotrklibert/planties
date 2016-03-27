@@ -1,0 +1,5 @@
+---
+- hosts: [pi, localhost]
+  gather_facts: yes
+  roles:
+    - update
