@@ -3,4 +3,10 @@
 
 - include: "tasks/sync.yml"
 
+- name: Compile release
+  shell:
+    mix compile
+  args:
+    chdir: "{{ project_path }}"
+
 - include: "tasks/restart_release.yml"
