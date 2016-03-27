@@ -2,6 +2,7 @@
   synchronize:
     src: "../../planties/"
     dest: "{{ home_path }}/planties/"
+    delete: yes
     rsync_opts:
       - "--exclude=deps"
       - "--exclude=_build"
@@ -9,3 +10,4 @@
       - "--exclude=.git"
       - "--exclude=run.sh"
       - "--exclude=rel/planties/"
+  when: ansible_nodename == "raspberrypi"
