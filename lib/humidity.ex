@@ -11,36 +11,48 @@ defmodule Humidity do
   [2] https://github.com/fhunleth/elixir_ale
   """
   use GenServer
+  use Bitwise
+
+  require Logger
 
   @global_name {:global, :humidity}
 
   @adc_id 0x6A
-  @lsb 0.000625                 # A/C conversion resolution in Volts
+  @lsb 0.000_062_5  # A/D conversion resolution (in Volts)
+  @len 16           # length of the value returned by ADC in bits
 
 
   def start_link() do
-    IO.inspect "Starting I2C handling..."
+    Logger.info "Starting I2C handling..."
     {:ok, pid} = I2c.start_link("i2c-1", @adc_id)
     GenServer.start_link(__MODULE__, pid, name: @global_name)
   end
 
-  def get(), do: GenServer.call @global_name, :get
+  def get() do
+    (GenServer.call @global_name, :get) |> Float.round(3)
+  end
+
 
   # Server API
 
   def handle_call(:get, _from, i2c_pid) do
-    I2c.write i2c_pid, config(1) # write/send a single byte
+    I2c.write i2c_pid, config(0) # write/send a single byte
     resp = I2c.read i2c_pid, 3   # read 3 bytes
 
-    << _sign :: size(1), val :: size(15), _conf :: size(8) >> = resp
-    # TODO: do something clever with the sign value. What is 'two's complement',
-    # anyway?
-    input_voltage = val * @lsb
+    <<val :: size(16), _conf :: size(8)>> = resp
+    <<sign :: size(1), _ :: size(15)>> = <<val :: size(16)>>
 
+    val = if sign == 0 do
+      val
+    else
+      # See: https://en.wikipedia.org/wiki/Two%27s_complement
+      0xFFFF - val + 1
+    end
+    input_voltage = val * @lsb  # convert to Volts
     {:reply, input_voltage, i2c_pid}
   end
 
-  defp config(chan), do: <<
+  def config(chan), do: <<
     0    :: size(1),     # ignored in continuous mode
     chan :: size(2),     # number of a channel to query
     1    :: size(1),     # 'o'ne-shot (0) or 'c'ontinuous mode (1)

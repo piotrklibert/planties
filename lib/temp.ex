@@ -23,9 +23,15 @@ defmodule Temp do
   # ----------------------------------------------------------------------------
   defp val_file(fname), do: "#{@dir}/#{fname}/w1_slave"
   def handle_call(:get, _from, slave_name) do
-    temp = File.read! val_file(slave_name)
-    {:reply, temp, slave_name}
+    {temp, _} = val_file(slave_name)
+    |> File.read!
+    |> String.split |> List.last
+    |> String.split("=") |> List.last
+    |> Integer.parse
+
+    {:reply, temp / 1000, slave_name}
   end
+
   def handle_call(_any, _, slave_name) do
     {:reply, nil, slave_name}
   end

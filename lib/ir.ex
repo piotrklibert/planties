@@ -1,15 +1,26 @@
 defmodule Ir do
   @moduledoc """
-  This module depends on correctly configured lirc.
+  This module opens a port to `ircat` program, which prints IR signal codes as
+  they appear. The module maintains a list of subscribers and forwards each
+  received signal to all listeners.
+
+  This module depends on correctly configured lirc, especially `lircd.conf` and
+  `.lircrc` need to be present. The former you may generate using irrecord:
+
+      sudo irrecord -d /dev/lirc0 /etc/lirc/lircd.conf
+
+  The latter is a mapping from signal codes to human-readable strings and you
+  have to write it by hand.
   """
   use GenServer
+
+  @global_name {:global, :ir}
+  @dev "/dev/lirc0"
 
   defmodule State do
     defstruct port: nil, listeners: []
   end
 
-  @global_name {:global, :ir}
-  @dev "/dev/lirc0"
 
   def start_link() do
     case Mix.env do
@@ -20,12 +31,13 @@ defmodule Ir do
     end
   end
 
-  def get() do
-    GenServer.call @global_name, :get
-  end
 
   def subscribe(pid) do
-    GenServer.call @global_name, {:register, self()}
+    GenServer.call @global_name, {:subscribe, pid}
+  end
+
+  def unsubscribe(pid) do
+    GenServer.call @global_name, {:unsubscribe, pid}
   end
 
 
@@ -34,16 +46,19 @@ defmodule Ir do
 
   def init(state) do
     port = Port.open {:spawn, "ircat myprog"}, line: 10
-    IO.inspect [port, state]
     {:ok, %State{state | port: port}}
   end
 
-  def handle_call({:register, pid}, _from, state) do
-    IO.inspect state.listeners
+
+  def handle_call({:subscribe, pid}, _from, state) do
     {:reply, :ok, %State{state | listeners: [pid | state.listeners]}}
   end
+  def handle_call({:unsubscribe, pid}, _from, state) do
+    {:reply, :ok, %State{state | listeners: state.listeners -- [pid]}}
+  end
 
-  def handle_info({port, {:data, {_, msg}}}, state) do
+
+  def handle_info({_port, {:data, {_, msg}}}, state) do
     for pid <- state.listeners do
       send pid, {:ir, msg}
     end
@@ -54,20 +69,40 @@ defmodule Ir do
   end
 end
 
+
 defmodule Ir.Mon do
+  @moduledoc """
+      The simplest possible monitor for incoming IR signals.
+  """
   use GenServer
 
   def start_link() do
     GenServer.start_link __MODULE__, nil, []
   end
 
+  def stop(pid) do
+    GenServer.call pid, :die
+  end
+
+  # Server section
+  # ----------------------------------------------------------------------------
   def init(nil) do
+    IO.inspect "Ir.Mon starting..."
     Ir.subscribe self()
     {:ok, nil}
+  end
+
+  def handle_call(:die, _from, state) do
+    {:stop, :normal, :ok, state}
   end
 
   def handle_info({:ir, txt}, state) do
     IO.inspect txt
     {:noreply, state}
+  end
+
+  def terminate(reason, state) do
+    IO.inspect "Ir.Mon terminating..."
+    Ir.unsubscribe self()
   end
 end
