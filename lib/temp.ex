@@ -1,17 +1,13 @@
 defmodule Temp do
   use GenServer
+  use Util
 
   @global_name {:global, :temp}
   @dir "/sys/bus/w1/devices/w1_bus_master1"
 
-  def start_link() do
-    case Mix.env do
-      :pi ->
-        [slave_name | _] = File.read!("#{@dir}/w1_master_slaves") |> String.split
-        GenServer.start_link __MODULE__, slave_name, name: @global_name
-      _ ->
-        raise "Temp server can only run on Raspberry!"
-    end
+  defpistart "Temp" do
+    [slave_name | _] = File.read!("#{@dir}/w1_master_slaves") |> String.split
+    GenServer.start_link __MODULE__, slave_name, name: @global_name
   end
 
   def get() do
@@ -29,7 +25,8 @@ defmodule Temp do
     |> String.split("=") |> List.last
     |> Integer.parse
 
-    {:reply, temp / 1000, slave_name}
+    temp = temp / 1000          # convert to degrees Celsius
+    {:reply, temp, slave_name}
   end
 
   def handle_call(_any, _, slave_name) do

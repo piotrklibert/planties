@@ -13,6 +13,7 @@ defmodule Ir do
   have to write it by hand.
   """
   use GenServer
+  use Util
 
   @global_name {:global, :ir}
   @dev "/dev/lirc0"
@@ -21,14 +22,8 @@ defmodule Ir do
     defstruct port: nil, listeners: []
   end
 
-
-  def start_link() do
-    case Mix.env do
-      :pi ->
-        GenServer.start_link __MODULE__, %State{}, name: @global_name
-      _ ->
-        raise "Ir server can only run on Raspberry!"
-    end
+  defpistart "Ir" do
+    GenServer.start_link __MODULE__, %State{}, name: @global_name
   end
 
 
@@ -73,21 +68,20 @@ end
 defmodule Ir.Mon do
   @moduledoc """
       The simplest possible monitor for incoming IR signals.
+
+      TODO: investigate gen_event and decide if it's worth rewriting
   """
   use GenServer
+  require Logger
 
-  def start_link() do
-    GenServer.start_link __MODULE__, nil, []
-  end
+  def start_link(), do: GenServer.start_link __MODULE__, nil, []
+  def stop(pid),    do: GenServer.call pid, :die
 
-  def stop(pid) do
-    GenServer.call pid, :die
-  end
 
   # Server section
   # ----------------------------------------------------------------------------
   def init(nil) do
-    IO.inspect "Ir.Mon starting..."
+    Logger.debug "Ir.Mon starting..."
     Ir.subscribe self()
     {:ok, nil}
   end
@@ -101,8 +95,8 @@ defmodule Ir.Mon do
     {:noreply, state}
   end
 
-  def terminate(reason, state) do
-    IO.inspect "Ir.Mon terminating..."
+  def terminate(_reason, _state) do
+    Logger.debug "Ir.Mon terminating..."
     Ir.unsubscribe self()
   end
 end

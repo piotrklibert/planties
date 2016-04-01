@@ -1,12 +1,13 @@
 defmodule Buzzer do
   use GenServer
+  use Util
 
   @global_name {:global, :buzz}
   @pin 24
   @gpio_path "/sys/class/gpio/"
   @val_file "#{@gpio_path}/gpio#{@pin}/value"
 
-  def start_link() do
+  defpistart "Buzzer" do
     File.write "#{@gpio_path}/export", "#{@pin}"
     File.write "#{@gpio_path}/gpio#{@pin}/direction", "out"
     GenServer.start_link __MODULE__, [], name: @global_name
@@ -19,6 +20,8 @@ defmodule Buzzer do
   end
 
 
+  # Server section
+  # ----------------------------------------------------------------------------
   def handle_call(:on, _from, state) do
     Util.turn_on @val_file
     {:reply, :ok, state}

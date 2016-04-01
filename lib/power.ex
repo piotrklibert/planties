@@ -1,5 +1,6 @@
 defmodule Power do
   use GenServer
+  use Util
 
   @global_name {:global, :power}
   @dir "/sys/class/gpio"
@@ -7,15 +8,10 @@ defmodule Power do
   @val_file "#{@dir}/gpio#{@pin}/value"
 
 
-  def start_link() do
-    case Mix.env do
-      :pi ->
-        File.write "#{@dir}/export", "#{@pin}"
-        File.write! "#{@dir}/gpio#{@pin}/direction", "out"
-        GenServer.start_link __MODULE__, nil, name: @global_name
-      _ ->
-        raise "Power manager server can only run on Raspberry!"
-    end
+  defpistart "AC" do
+    File.write "#{@dir}/export", "#{@pin}"
+    File.write! "#{@dir}/gpio#{@pin}/direction", "out"
+    GenServer.start_link __MODULE__, nil, name: @global_name
   end
 
   def switch(state) do

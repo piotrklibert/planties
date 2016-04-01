@@ -11,18 +11,18 @@ defmodule Humidity do
   [2] https://github.com/fhunleth/elixir_ale
   """
   use GenServer
-  use Bitwise
+  use Util
 
   require Logger
 
   @global_name {:global, :humidity}
 
   @adc_id 0x6A
-  @lsb 0.000_062_5  # A/D conversion resolution (in Volts)
+  @lsb 0.000_062_5  # A/D conversion resolution (in Volts, from datasheet)
   @len 16           # length of the value returned by ADC in bits
 
 
-  def start_link() do
+  defpistart "i2c" do
     Logger.info "Starting I2C handling..."
     {:ok, pid} = I2c.start_link("i2c-1", @adc_id)
     GenServer.start_link(__MODULE__, pid, name: @global_name)

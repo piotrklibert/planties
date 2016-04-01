@@ -18,7 +18,8 @@ use Mix.Config
 #
 # Or configure a 3rd-party app:
 #
-#     config :logger, level: :info
+config :logger, level: :debug
+# config :sasl, errlog_type: :error
 #
 
 # It is also possible to import configuration files, relative to this

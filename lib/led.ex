@@ -1,4 +1,5 @@
 defmodule LED do
+  use Util
   use GenServer
 
   @global_name {:global, :led}
@@ -6,16 +7,10 @@ defmodule LED do
   @pin "18"
   @val_file "#{@dir}/gpio#{@pin}/value"
 
-
-  def start_link() do
-    case Mix.env do
-      :pi ->
-        File.write "#{@dir}/export", "#{@pin}"
-        File.write! "#{@dir}/gpio#{@pin}/direction", "out"
-        GenServer.start_link __MODULE__, nil, name: @global_name
-      _ ->
-        raise "LED server can only run on Raspberry!"
-    end
+  defpistart "LED" do
+    File.write "#{@dir}/export", "#{@pin}"
+    File.write! "#{@dir}/gpio#{@pin}/direction", "out"
+    GenServer.start_link __MODULE__, nil, name: @global_name
   end
 
   def blink(time \\ 400) do
@@ -33,11 +28,11 @@ defmodule LED do
 
   # Server section
   # ----------------------------------------------------------------------------
-
   def handle_call({:blink, time}, _from, state) do
-    Util.turn_on(@val_file)
-    receive do after time -> :ok end
-    Util.turn_off(@val_file)
+    import Util
+    @val_file |> turn_on
+    wait(time)
+    @val_file |> turn_off
     {:reply, :ok, state}
   end
 end
