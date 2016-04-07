@@ -6,7 +6,7 @@ defmodule Util do
     end
   end
 
-  defmacro defpistart(server_name,  body) do
+  defmacro defpistart(server_name,  do: body) do
     quote do
       def start_link do
         case Mix.env do

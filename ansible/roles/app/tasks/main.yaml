@@ -21,7 +21,7 @@
     chdir: "{{ project_path }}"
 
 - name: "Mix compile"
-  shell: mix compile
+  shell: "{{ MENV }} mix compile"
   args:
     chdir: "{{ project_path }}"
 
@@ -33,7 +33,7 @@
 
 - name: "Build Elixir release"
   shell:
-    MIX_ENV={{ mix_env }} mix release --dev
+     "{{ MENV }} mix release --dev"
   tags: build
   args:
     chdir: "{{ project_path }}"

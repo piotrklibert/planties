@@ -24,7 +24,8 @@ defmodule Planties do
     worker(Buzzer, []),
     worker(Power, []),
     worker(Ir, []),
-    worker(Temp, [])
+    worker(Temp, []),
+    worker(Relay, [])
   ]
   def children(_env), do: []
 end

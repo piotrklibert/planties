@@ -5,6 +5,7 @@ cookie: fbs
 repo_path: "{{ inventory_dir }}"
 home_path: "/home/{{ user }}/"
 project_path: "{{ home_path }}/{{ project }}"
+MENV: "MIX_ENV={{ mix_env }}"
 
 otp_basename: "otp_src_18.3"
 

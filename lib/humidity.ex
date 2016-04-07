@@ -23,7 +23,7 @@ defmodule Humidity do
 
 
   defpistart "i2c" do
-    Logger.info "Starting I2C handling..."
+    Logger.info "Starting I2C handling for humidity sensor..."
     {:ok, pid} = I2c.start_link("i2c-1", @adc_id)
     GenServer.start_link(__MODULE__, pid, name: @global_name)
   end
