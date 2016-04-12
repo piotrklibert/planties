@@ -16,11 +16,11 @@
 
 
 - name: "Get mix deps"
-  shell: mix deps.get
+  shell: "{{ MENV }} mix deps.get"
   args:
     chdir: "{{ project_path }}"
 
-- name: "Mix compile"
+- name: "Mix compile: {{ MENV }}"
   shell: "{{ MENV }} mix compile"
   args:
     chdir: "{{ project_path }}"

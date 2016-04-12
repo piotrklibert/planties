@@ -9,5 +9,10 @@
       - "--exclude=rel"
       - "--exclude=.git"
       - "--exclude=run.sh"
+      - "--exclude=error.log"
       - "--exclude=rel/planties/"
   when: ansible_nodename == "raspberrypi"
+
+- name: "Update timestamps on files (force recompilation)"
+  shell:
+    touch {{home_path}}/planties/lib/*

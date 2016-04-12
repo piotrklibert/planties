@@ -41,9 +41,14 @@ defmodule Ir do
 
   def init(state) do
     port = Port.open {:spawn, "ircat myprog"}, line: 10
+    # GenServer.cast @global_name, :start_player
     {:ok, %State{state | port: port}}
   end
 
+  # def handle_cast(:start_player, state) do
+  #   Ir.Player.start_link()
+  #   {:noreply, state}
+  # end
 
   def handle_call({:subscribe, pid}, _from, state) do
     {:reply, :ok, %State{state | listeners: [pid | state.listeners]}}
@@ -62,14 +67,45 @@ defmodule Ir do
   def handle_info(_msg, state) do
     {:noreply, state}
   end
+
 end
 
+defmodule Ir.Player do
+  @global_name {:global, :ir_player}
+  require Logger
+  use Util
+
+  defpistart "Ir.Player" do
+    GenServer.start_link __MODULE__, %{}, name: @global_name
+  end
+
+  def init(state) do
+    Logger.debug "Ir.Player starting..."
+    Ir.subscribe self()
+    {:ok, state}
+  end
+
+  def handle_info({:ir, msg}, state) do
+    msg
+    |> translate
+    |> Porcelain.shell
+    {:noreply, state}
+  end
+
+  def translate('vol+') do "mcp volume +8" end
+  def translate('vol-') do "mcp volume -8" end
+  def translate('play') do "mcp play" end
+
+  def terminate(_reason, _state) do
+    Logger.debug "Ir.Remote terminating..."
+    Ir.unsubscribe self()
+  end
+
+end
 
 defmodule Ir.Mon do
   @moduledoc """
       The simplest possible monitor for incoming IR signals.
-
-      TODO: investigate gen_event and decide if it's worth rewriting
   """
   use GenServer
   require Logger

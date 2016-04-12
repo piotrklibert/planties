@@ -2,6 +2,8 @@ user: pi
 project: planties
 sname: "planties"
 mix_env: "pi"
+MENV: "MIX_ENV={{ mix_env }}"
+
 locale: LC_ALL=C.UTF-8
 
 repo_path: "{{ inventory_dir }}"

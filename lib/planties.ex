@@ -22,10 +22,11 @@ defmodule Planties do
     worker(LED, []),
     worker(Humidity, []),
     worker(Buzzer, []),
-    worker(Power, []),
     worker(Ir, []),
     worker(Temp, []),
-    worker(Relay, [])
+    worker(Relay, []),
+    worker(Ir.Player, []),
+    worker(Pump, [])
   ]
   def children(_env), do: []
 end
