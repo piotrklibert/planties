@@ -26,6 +26,7 @@ defmodule Planties do
     worker(Temp, []),
     worker(Relay, []),
     worker(Ir.Player, []),
+    worker(Pins, []),
     worker(Pump, [])
   ]
   def children(_env), do: []

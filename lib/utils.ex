@@ -1,27 +1,3 @@
-defmodule Pin do
-  def get(pin),      do: file(pin, "value") |> File.read!
-  def set(pin, val), do: file(pin, "value") |> File.write!("#{val}")
-
-  def set(pins) do
-    for {pin, val} <- pins do
-      export(pin)
-      set_dir(pin, "out")
-      set(pin, val)
-    end
-  end
-
-  def export(pin), do: File.write("/sys/class/gpio/export", "#{pin}")
-
-  def get_dir(pin),      do: file(pin, "direction") |> File.read!
-  def set_dir(pin, dir), do: file(pin, "direction") |> File.write! dir
-
-  def on(pin),  do: set pin, "1"
-  def off(pin), do: set pin, "0"
-
-  def dir(pin), do: "/sys/class/gpio/gpio#{pin}/"
-  def file(pin, file), do: Path.join(dir(pin), file)
-end
-
 defmodule Util do
   defmacro __using__(_) do
     quote do
@@ -78,5 +54,4 @@ defmodule Util do
   def gpio_path(pin) do
     "/sys/class/gpio/gpio#{pin}/value"
   end
-
 end
