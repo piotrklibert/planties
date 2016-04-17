@@ -25,6 +25,7 @@ defmodule Pins.Macros do
   end
 end
 
+
 defmodule Pins do
   use GenServer
   use Pins.Macros

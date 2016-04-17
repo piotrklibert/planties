@@ -25,6 +25,7 @@ defmodule Relay.Timer do
   end
 end
 
+
 defmodule Relay do
   use Bitwise
   use GenServer
