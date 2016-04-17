@@ -37,7 +37,7 @@ defmodule Pump do
   end
 
   def handle_call(:get_state, _from, state) do
-    %PWM.St{state: is_on?, power: power} = PWM.get(state.pid)
+    %PWM.St{pin_state: is_on?, power: power} = PWM.get(state.pid)
     {:reply, {is_on?, power}, state}
   end
 

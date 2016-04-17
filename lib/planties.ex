@@ -20,14 +20,15 @@ defmodule Planties do
 
   def children(:pi), do: [
     worker(LED, []),
-    worker(Humidity, []),
+    # worker(Humidity, []),
     worker(Buzzer, []),
-    worker(Ir, []),
+    # worker(Ir, []),
     worker(Temp, []),
     worker(Relay, []),
-    worker(Ir.Player, []),
-    worker(Pins, []),
-    worker(Pump, [])
+    # worker(Ir.Player, []),
+    worker(Pins, [])
+    # worker(Fan, []),
+    # worker(Pump, [])
   ]
   def children(_env), do: []
 end

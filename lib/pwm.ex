@@ -4,12 +4,12 @@ defmodule PWM do
 
 
   defmodule St do
-    defstruct
-        pin: nil,               # an int, number of the pin
-        pin_state: :off,        # :on or :off
-        power: 15               # an int, in 1 .. 101 range, interpreted as
-                                # percentage
+    defstruct pin: nil, pin_state: :off, power: 15
   end
+# an int, number of the pin
+# :on or :off
+# an int, in 1 to 101 range, interpreted as
+# percentage
 
 
   @doc "Start a PWM process and attach it to the pin with given pin number."
@@ -27,8 +27,8 @@ defmodule PWM do
   def set_power(pid, power), do: GenServer.call(pid, {:power, power})
 
   # State - aka switch on and off - Setters
-  def on(pid),               do: set_state(:on)
-  def off(pid),              do: set_state(:off)
+  def on(pid),               do: set_state(pid, :on)
+  def off(pid),              do: set_state(pid, :off)
   def set_state(pid, state), do: GenServer.call(pid, {:pin_state, state})
 
 
@@ -56,7 +56,7 @@ defmodule PWM do
   ### State Setter
   def handle_call({:pin_state, pin_state}, _from, state) do
     state = %St{state | pin_state: pin_state}
-    Logger.info("Setting state to #{is_on?}")
+    Logger.info("Setting state to #{pin_state}")
     {:reply, state, state}
   end
 end
@@ -72,7 +72,7 @@ defmodule PWM.Cycle do
 
   @cycle 100
 
-  def start_link(pwm_pid) do: spawn_link(PWM.Cycle, :loop, [pwm_pid])
+  def start_link(pwm_pid), do: spawn_link(PWM.Cycle, :loop, [pwm_pid])
 
   def loop(pwm_pid) do
     %PWM.St{power: power, pin_state: state, pin: pin} = PWM.get(pwm_pid)

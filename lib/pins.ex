@@ -1,146 +1,119 @@
-defmodule GPIO do
-  defstruct
-      num: nil,
-      val: 0,
-      dir: :out,
-      file: nil
+defmodule Pins.Macros do
+  defmacro __using__(_) do
+    quote do
+      require Pins.Macros
+      import Pins.Macros
+    end
+  end
+
+  @doc """
+  A helper macro which initializes the given pin if it's not initialized
+  already.
+  """
+  defmacro with_pin(state, pin_num, do: block) do
+    quote do
+      num = unquote(pin_num)
+      state = unquote(state)
+
+      var!(state) = case Map.has_key?(state.pins, num) do
+                      false -> state
+                      true  -> start_gpio(state, num)
+                    end
+      var!(pin) = var!(state).pins[ num ]
+      unquote(block)
+    end
+  end
 end
-
-
-defmodule Pins.Paths do
-  def base,            do: "/sys/class/gpio/"
-  def dir(pin),        do: "#{base}/gpio#{pin}/"
-  def file(pin, file), do: dir(pin) |> Path.join(file)
-  def val(pin),        do: file(pin, "value")
-end
-
 
 defmodule Pins do
   use GenServer
-  import GenServer
+  use Pins.Macros
   require Logger
-  alias Pins.Paths
 
   @global_name {:global, :pins}
 
-  def start_link(), do: start_link(__MODULE__, %{}, name: @global_name)
+
+  defmodule State do
+    defstruct pins: %{}
+  end
+
+
+  def start_link(),
+    do: GenServer.start_link(__MODULE__, %State{}, name: @global_name)
 
 
   # GETTERS
   @doc "Get a list of all currently managed pins"
-  def all(),       do: call(@global_name, :get_all)
+  def get(), do: GenServer.call @global_name, :all
+  def all(), do: get()
 
   @doc "Get given pin info"
-  def pin(pin),    do: call(@global_name, {:get_pin, pin})
-
-  @doc "Get value of given pin"
-  def val(pin), do: call(@global_name, {:val, pin})
-
-  @doc "Get direction of given pin (:in/:out)"
-  def get_dir(pin), do: Pins.pin(pin).dir
+  def get(pin_num), do: GenServer.call @global_name, {:get, pin_num}
 
 
   # SETTERS
   @doc "Set value for given pin to `val`"
-  def set(pin, value), do: val(pin, value) # an alias for `val`
-  def val(pin, val) do
-    case call(@global_name, {:val, pin, val}) do
-      :badarg ->
-        raise(ArgumentError, message: "Can't set value of input pin #{pin}.")
-      %GPIO{val: val} ->
-        val
-    end
-  end
-
-  @doc "Set given pin to HIGH state"
-  def on(pin), do: val(pin, "1")
-
-  @doc "Set given pin to LOWstate"
-  def off(pin), do: val(pin, "0")
-
-  @doc "Set direction of given pin to `dir`"
-  def dir(pin, direction) do
-    call(@global_name, {:dir, pin, direction})
-  end
+  def set(pin_num, val), do: GenServer.call(@global_name, {:val, pin_num, val})
 
   @doc "Set values for all the pins given. Accepts a list of pairs: {pin_num, val}"
-  def set(pins) do
-    for {pin, val} <- pins do
-      Pins.export(pin)
-      Pins.dir(pin, "out")
-      Pins.set(pin, val)
-    end
-  end
+  def set(pins), do: for {pin_num, val} <- pins, do: set(pin_num, val)
+
+  @doc "Release the given pin"
+  def release(pin_num), do:  GenServer.call(@global_name, {:release, pin_num})
+
+
 
   # Server section
   # ----------------------------------------------------------------------------
 
-  def handle_call(:get_all, _from, state), do: {:reply, state, state}
+  # Return all the pins
+  def handle_call(:all, _from, state), do:
+    {:reply, state.pins, state}
 
-  def handle_call({:get_pin, pin}, _from, state) do
-    state = Map.put_new(state, pin, init_pin(pin, state))
-    {:reply, state[pin].val, state}
-  end
-
-  def handle_call({:dir, pin, direction}, _from, state) do
-    state = Map.put_new(state, pin, init_pin(pin, state))
-    Paths.file(pin, "direction") |> File.write!(direction)
-    {:reply, :ok, state}
-  end
 
   # Get pin value
-  def handle_call({:val, pin}, _from, state) do
-    state = Map.put_new(state, pin, init_pin(pin, state))
-    ret = case state[pin].dir do
-            :in ->
-              val(pin) |> Pin.read! |> String.strip
-            :out ->
-              state[pin].val
-          end
-    {:reply, ret, state}
+  def handle_call({:get, pin_num}, _from, state) do
+    with_pin(state, pin_num) do
+      value = Gpio.read(pin)
+      {:reply, value, state}
+    end
   end
 
-
   # Set pin value
-  def handle_call({:val, pin, new_val}, _from, state) do
-    state = Map.put_new(state, pin, init_pin(pin, state))
-    pin_map = state[pin]
-    case pin_map.dir do
-      :out ->
-        IO.write(pin_map.file, "#{new_val}")
-        state = put_in(state[pin].val, new_val)
-        {:reply, state[pin], state}
-      :in ->
-        {:reply, :badarg, state}
+  def handle_call({:val, pin_num, new_val}, _from, state) do
+    with_pin(state, pin_num) do
+      Gpio.write(pin, new_val)
+      {:reply, :ok, state}
+    end
+  end
+
+  # Release the pin
+  def handle_call({:release, pin_num}, _from, state) do
+    if Map.has_key?(state.pins, pin_num) do
+      {pin_pid, pins} = Map.pop(state.pin, pin_num)
+      Gpio.release(pin_pid)
+      {:reply, :ok, %State{state | pins: pins}}
+    else
+      {:reply, {:badarg, "We don't have the pin #{pin_num} open yet!"}, state}
     end
   end
 
 
+  # Cleanup - release all the pins before exiting
   def terminate(_reason, state) do
-    for {k, %GPIO{file: io_dev}} <- Map.to_list(state) do
-      Logger.info "Closing pin #{k}..."
-      File.close(io_dev)
+    for {num, pid} <- Map.to_list(state.pins) do
+      Gpio.release(pid)
+      Logger.info "Closing pin #{num}..."
     end
   end
 
 
   # Helpers
   # ----------------------------------------------------------------------------
-  @doc "Make given pin accessible in the file system"
-  def export(pin), do: File.write(Paths.base <> "/export", "#{pin}")
-  def out(pin), do: File.write!(Paths.file(pin, "direction"), "out")
 
-  def init_pin(pin, state) do
-    case state[pin] do
-      nil ->
-        Pins.export(pin)
-        Pins.out(pin)
-        %GPIO{
-          num: pin,
-          file: Paths.val(pin) |> File.open!([:write])
-        }
-      pin_state ->
-        pin_state
-    end
+  defp start_gpio(state, pin_num) do
+    {:ok, pid} = Gpio.start_link(pin_num, :output)
+    pins = state.pins |> Map.put(pin_num, pid)
+    %State{state | pins: pins}
   end
 end
