@@ -1,12 +1,8 @@
 ---
-- hosts: localhost
+- hosts:
+    - localhost
+    - pi
   gather_facts: yes
   roles:
     - system
     - app
-
-- hosts: pi
-  gather_facts: yes
-  roles:
-    - system
-    - {role: app, tags: update}

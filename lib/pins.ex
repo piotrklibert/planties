@@ -16,8 +16,8 @@ defmodule Pins.Macros do
       state = unquote(state)
 
       var!(state) = case Map.has_key?(state.pins, num) do
-                      false -> state
-                      true  -> start_gpio(state, num)
+                      true  -> state
+                      false -> start_gpio(state, num)
                     end
       var!(pin) = var!(state).pins[ num ]
       unquote(block)
@@ -27,6 +27,13 @@ end
 
 
 defmodule Pins do
+  @moduledoc """
+  This module implements a (global) registry of GPIO pins we want to use. It
+  initializes the pins on demand, the first time its state is read or written.
+
+  TODO: resetting pins directions
+  """
+
   use GenServer
   use Pins.Macros
   require Logger
@@ -63,6 +70,8 @@ defmodule Pins do
   def release(pin_num), do:  GenServer.call(@global_name, {:release, pin_num})
 
 
+  def on(pin_num),  do: set(pin_num, 1)
+  def off(pin_num), do: set(pin_num, 0)
 
   # Server section
   # ----------------------------------------------------------------------------
@@ -112,7 +121,8 @@ defmodule Pins do
   # Helpers
   # ----------------------------------------------------------------------------
 
-  defp start_gpio(state, pin_num) do
+  def start_gpio(state, pin_num) do
+    Logger.info "Starting GPIO process for pin #{pin_num}."
     {:ok, pid} = Gpio.start_link(pin_num, :output)
     pins = state.pins |> Map.put(pin_num, pid)
     %State{state | pins: pins}

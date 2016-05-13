@@ -1,31 +1,3 @@
-defmodule Relay.Timer do
-  require Logger
-
-  def start_link do
-    {_, {now, m, s}} = :calendar.local_time()
-    day_night = if now > 8 and now < 21 do :day else :night end
-    Logger.info "Starting timer on #{now}:#{m}:#{s} at #{day_night}..."
-    spawn_link __MODULE__, :loop, [day_night]
-  end
-
-  def loop(state) do
-    {_, {now_h, now_m, _}} = :calendar.local_time
-    new_state =
-      case state do
-        :day when now_h == 20 and now_m == 35 ->
-          Relay.alloff()
-          :night
-        :night when now_h == 8 ->
-          Relay.allon()
-          :day
-        _ -> state
-      end
-
-    :timer.apply_after :timer.seconds(25), __MODULE__, :loop, [new_state]
-  end
-end
-
-
 defmodule Relay do
   use Bitwise
   use GenServer
@@ -42,6 +14,7 @@ defmodule Relay do
     Logger.info "Starting I2C handling for Relay Hat..."
     {:ok, pid} = I2c.start_link("i2c-1", @i2c_id)
     Relay.Timer.start_link()
+    Relay.Buttons.start_link()
     init_val = bnot(read_byte(pid))
     GenServer.start_link(__MODULE__,
                          %{i2c: pid, val: init_val},
@@ -74,10 +47,10 @@ defmodule Relay do
   def allon(),  do: set(0b0000)
   def alloff(), do: set(0b1111)
 
-  def on(num) when is_list(num), do: for n <- num, do: on(n)
+  def on(nums) when is_list(nums), do: for n <- nums, do: on(n)
   def on(num), do: switch num, 0
 
-  def off(num) when is_list(num), do: for n <- num, do: off(n)
+  def off(nums) when is_list(nums), do: for n <- nums, do: off(n)
   def off(num), do: switch num, 1
 
   def switch(vals) when is_list(vals) do
@@ -164,14 +137,6 @@ defmodule Relay do
   defp log(val, msg \\ "Binary val: ") do
     # IO.write(msg)
     # IO.inspect(fmt(val))
-  end
-
-  defp fmt(val) do
-    # this is needed, because 0xFF, when read as a single byte, looks like -1
-    # (ie. it has MSB set).
-    << val :: size(16) >> = << 0 ::size(8), val :: size(8) >>
-    base_2 = Integer.to_string(val, 2) |> String.rjust(8, ?0)
-    "#{val} (0b#{base_2})"
   end
 
   defp to_bit(active?) do

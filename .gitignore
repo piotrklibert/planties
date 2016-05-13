@@ -22,3 +22,4 @@ rel/planties
 /lib/t.ex
 /mix.lock
 /t.ex
+/error.log

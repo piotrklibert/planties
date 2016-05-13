@@ -20,7 +20,7 @@ defmodule Planties do
 
   def children(:pi), do: [
     worker(LED, []),
-    # worker(Humidity, []),
+    worker(Humidity, []),
     worker(Buzzer, []),
     # worker(Ir, []),
     worker(Temp, []),

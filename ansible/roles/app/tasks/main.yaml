@@ -1,21 +1,11 @@
-- include_vars: "config/vars.yml"
-  tags:
-    - restart
-    - build
-- include_vars: "config/{{ ansible_nodename }}.yml"
-  tags:
-    - restart
-    - build
+- include: tasks/sync.yml
 
-- include: "tasks/sync.yml"
-
-- name: "Generate vm.args"
+- name: Generate vm.args
   template:
-    src: "config/vm.args"
+    src: config/vm.args
     dest: "{{ project_path }}/rel/vm.args"
 
-
-- name: "Get mix deps"
+- name: Get mix deps
   shell: "{{ MENV }} mix deps.get"
   args:
     chdir: "{{ project_path }}"
@@ -25,13 +15,13 @@
   args:
     chdir: "{{ project_path }}"
 
-- name: "Remove previous release"
+- name: Remove previous release
   tags: build
   file:
     path: "{{ project_path }}/rel/planties"
-    state: "absent"
+    state: absent
 
-- name: "Build Elixir release"
+- name: Build Elixir release
   shell:
      "{{ MENV }} mix release --dev"
   tags: build

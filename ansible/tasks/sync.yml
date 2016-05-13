@@ -1,18 +1,18 @@
-- name: "Uploading code"
+- name: Uploading code
   synchronize:
-    src: "../../planties/"
-    dest: "{{ home_path }}/planties/"
+    src: "../../{{ project }}/"
+    dest: "{{ home_path }}/{{ project }}/"
     delete: yes
     rsync_opts:
-      - "--exclude=deps"
-      - "--exclude=_build"
-      - "--exclude=rel"
-      - "--exclude=.git"
-      - "--exclude=run.sh"
-      - "--exclude=error.log"
-      - "--exclude=rel/planties/"
+      - --exclude=deps
+      - --exclude=_build
+      - --exclude=rel
+      - --exclude=.git
+      - --exclude=run.sh
+      - --exclude=error.log
+      - --exclude=rel/planties/
   when: ansible_nodename == "raspberrypi"
 
-- name: "Update timestamps on files (force recompilation)"
-  shell:
-    touch {{home_path}}/planties/lib/*
+- name: Update timestamps on files (force recompilation)
+  shell: >-
+    touch {{ home_path }}/planties/lib/*

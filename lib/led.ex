@@ -3,13 +3,9 @@ defmodule LED do
   use GenServer
 
   @global_name {:global, :led}
-  @dir "/sys/class/gpio"
-  @pin "18"
-  @val_file "#{@dir}/gpio#{@pin}/value"
+  @pin 18
 
   defpistart "LED" do
-    File.write "#{@dir}/export", "#{@pin}"
-    File.write! "#{@dir}/gpio#{@pin}/direction", "out"
     GenServer.start_link __MODULE__, nil, name: @global_name
   end
 
@@ -29,10 +25,9 @@ defmodule LED do
   # Server section
   # ----------------------------------------------------------------------------
   def handle_call({:blink, time}, _from, state) do
-    import Util
-    @val_file |> turn_on
-    wait(time)
-    @val_file |> turn_off
+    Pins.on @pin
+    Util.wait(time)
+    Pins.off @pin
     {:reply, :ok, state}
   end
 end

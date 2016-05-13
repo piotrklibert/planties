@@ -10,9 +10,7 @@ defmodule Temp do
     GenServer.start_link __MODULE__, slave_name, name: @global_name
   end
 
-  def get() do
-    GenServer.call @global_name, :get
-  end
+  def get(), do: GenServer.call @global_name, :get
 
 
   # Server section
@@ -20,17 +18,16 @@ defmodule Temp do
   defp val_file(fname), do: "#{@dir}/#{fname}/w1_slave"
   def handle_call(:get, _from, slave_name) do
     {temp, _} = val_file(slave_name)
-    |> File.read!
-    |> String.split |> List.last
-    |> String.split("=") |> List.last
-    |> Integer.parse
-
+        |> File.read!
+        |> String.split      |> List.last
+        |> String.split("=") |> List.last
+        |> Integer.parse
     temp = temp / 1000          # convert to degrees Celsius
     {:reply, temp, slave_name}
   end
 
   def handle_call(_any, _, slave_name) do
-    {:reply, nil, slave_name}
+    {:reply, slave_name, slave_name}
   end
 
 end

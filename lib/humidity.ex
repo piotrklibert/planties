@@ -20,6 +20,7 @@ defmodule Humidity do
   @adc_id 0x6A
   @lsb 0.000_062_5  # A/D conversion resolution (in Volts, from datasheet)
   @len 16           # length of the value returned by ADC in bits
+  @max_vcc 2.14     # determined empirically
 
 
   defpistart "i2c" do
@@ -28,10 +29,20 @@ defmodule Humidity do
     GenServer.start_link(__MODULE__, pid, name: @global_name)
   end
 
-  def get() do
-    (GenServer.call @global_name, :get) |> Float.round(3)
+
+  def get(pretty? \\ true) do
+    val = GenServer.call(@global_name, :get)
+    if pretty? do
+      val |> _fmt
+    else
+      val
+    end
   end
 
+
+  def _fmt(val) do
+    "#{val |> trunc} %"
+  end
 
   # Server API
 
@@ -48,8 +59,9 @@ defmodule Humidity do
       # See: https://en.wikipedia.org/wiki/Two%27s_complement
       0xFFFF - val + 1
     end
-    input_voltage = val * @lsb  # convert to Volts
-    {:reply, input_voltage, i2c_pid}
+    voltage = val * @lsb  # convert to Volts
+    humidity = voltage / @max_vcc * 100 # convert to percents
+    {:reply, humidity, i2c_pid}
   end
 
   def config(chan), do: <<

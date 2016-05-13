@@ -1,11 +1,11 @@
-- name: "Stop Elixir"
+- name: Stop Elixir
   tags: restart
   shell:
     "{{ MENV }} rel/planties/bin/planties stop || true"
   args:
     chdir: "{{ project_path }}"
 
-- name: "Start Elixir"
+- name: Start Elixir
   tags: restart
   shell:
     "{{ MENV }} rel/planties/bin/planties start"
