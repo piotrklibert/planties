@@ -1,14 +1,17 @@
 user: null
 project: null
+
+sname: null
 cookie: fbs
 
-repo_path: "{{ inventory_dir }}"
-home_path: "/home/{{ user }}/"
-project_path: "{{ home_path }}/{{ project }}"
-MENV: "MIX_ENV={{ mix_env }}"
+build_root:   "{{ ansible_user_dir }}/builds/"
+project_path: "{{ ansible_user_dir }}/{{ project }}"
 
+
+otp_build_dir: "{{ build_root }}/{{ otp_basename }}"
 otp_basename: otp_src_18.3
 
-build_root: "{{ home_path }}/builds/"
-otp_dir: "{{ build_root }}/{{ otp_basename }}"
-ex_dir: "{{ build_root }}/elixir"
+ex_build_dir: "{{ build_root }}/elixir"
+
+
+MENV: "MIX_ENV={{ mix_env }}"

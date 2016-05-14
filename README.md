@@ -1,24 +1,26 @@
 # PLANTies
 
-This is a little, distributed Elixir program for monitoring and commanding
-Raspberry PI. I wrote it for monitoring my plants, hence the name.
+### Why? ###
 
-# Use
+I started growing some plants lately, and around the sime time I also bought
+Raspberry Pi. I realized that it would be a fun project to try and automate
+plant care so I tried doing that.
 
-You need to start one instance of the project on the RPI, like this:
 
-    MIX_ENV=pi iex --cookie <cookie_string> --sname planties -S mix
+### What? ###
 
-and on any other system within the network:
+PLANTies is an Elixir application meant to be run on the Pi. It is capable of:
 
-    MIX_ENV=pi iex --cookie <cookie_string> --sname planties -S mix
+- switching on/off 4 independent Relays
+- reading a temperature using an external thermometer connected via `w1`
+- reading key-presses from attached, 4-keys keypad
+- reacting to button presses on an IR pilot
+- reading the soil humidity value
+- beep a buzzer
+- blink a diode
 
-You can verify it works by writing:
 
-    LED.blink_many 10
+# Use #
 
-in either console.
 
-# TODO
-
-1. [] IR-controller implementation
+TODO

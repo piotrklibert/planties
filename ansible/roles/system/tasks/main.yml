@@ -3,52 +3,51 @@
     path: "{{ build_root }}"
     state: directory
 
-- get_url:
-    url: http://erlang.org/download/otp_src_18.3.tar.gz
-    dest: "{{ otp_dir }}.tar.gz"
+- name: Download Erlang/OTP sources
+  unarchive:
+    url: "http://erlang.org/download/{{ otp_basename }}.tar.gz"
+    dest: "{{ otp_build_dir }}"
 
-- shell: >-
-    tar zxf {{ otp_dir }}.tar.gz
-  args:
-    creates: "{{ otp_dir }}"
-    chdir: "{{ build_root }}"
 
-- shell: >-
+- name: Configure Erlang build
+  shell: >-
     ./configure --prefix="/usr"
   args:
     creates: Makefile
-    chdir: "{{ otp_dir }}"
+    chdir: "{{ otp_build_dir }}"
 
-- shell: >-
+- name: Build Erlang
+  shell: >-
     make -j 8 && touch made
   args:
-    chdir: "{{ otp_dir }}"
-    creates: "{{ otp_dir }}/made"
+    chdir: "{{ otp_build_dir }}"
+    creates: "{{ otp_build_dir }}/made"
 
 - name: Run make install
   shell: >-
     make install && touch installed
   args:
-    chdir: "{{ otp_dir }}"
-    creates: "{{ otp_dir }}/installed"
+    chdir: "{{ otp_build_dir }}"
+    creates: "{{ otp_build_dir }}/installed"
   become: yes
 
-- git:
+- name: Download Elixir sources
+  git:
     repo: https://github.com/elixir-lang/elixir.git
-    dest: "{{ ex_dir }}/"
+    dest: "{{ ex_build_dir }}/"
     update: no
 
 - name: Run make for Elixir
   shell: >-
     make -j 6 && touch made
   args:
-    chdir: "{{ ex_dir }}"
-    creates: "{{ ex_dir }}/made"
+    chdir: "{{ ex_build_dir }}"
+    creates: "{{ ex_build_dir }}/made"
 
 - name: Run make install
   shell: >-
     make install && touch installed
   args:
-    chdir: "{{ ex_dir }}"
-    creates: "{{ ex_dir }}/installed"
+    chdir: "{{ ex_build_dir }}"
+    creates: "{{ ex_build_dir }}/installed"
   become: yes

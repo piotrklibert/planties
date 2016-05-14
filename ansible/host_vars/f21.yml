@@ -4,7 +4,4 @@ project: planties
 sname: mon
 mix_env: f21
 
-build_root: /home/cji/portless/builds/
-project_path: "{{ home_path }}/poligon/{{ project }}"
-otp_dir: "{{ build_root }}/{{ otp_basename }}"
-ex_dir: "{{ build_root }}/elixir"
+project_path: "/home/cji/poligon/{{ project }}/"

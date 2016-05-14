@@ -6,7 +6,6 @@ MENV: "MIX_ENV={{ mix_env }}"
 
 locale: LC_ALL=C.UTF-8
 
-repo_path: "{{ inventory_dir }}"
 home_path: "/home/{{ user }}/"
 project_path: "{{ home_path }}/{{ project }}"
 
