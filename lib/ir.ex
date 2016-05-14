@@ -41,14 +41,8 @@ defmodule Ir do
 
   def init(state) do
     port = Port.open {:spawn, "ircat myprog"}, line: 10
-    # GenServer.cast @global_name, :start_player
     {:ok, %State{state | port: port}}
   end
-
-  # def handle_cast(:start_player, state) do
-  #   Ir.Player.start_link()
-  #   {:noreply, state}
-  # end
 
   def handle_call({:subscribe, pid}, _from, state) do
     {:reply, :ok, %State{state | listeners: [pid | state.listeners]}}
@@ -56,7 +50,6 @@ defmodule Ir do
   def handle_call({:unsubscribe, pid}, _from, state) do
     {:reply, :ok, %State{state | listeners: state.listeners -- [pid]}}
   end
-
 
   def handle_info({_port, {:data, {_, msg}}}, state) do
     for pid <- state.listeners do
@@ -97,7 +90,7 @@ defmodule Ir.Player do
   def translate('play') do "mcp play" end
 
   def terminate(_reason, _state) do
-    Logger.debug "Ir.Remote terminating..."
+    Logger.debug "Ir.Player terminating..."
     Ir.unsubscribe self()
   end
 

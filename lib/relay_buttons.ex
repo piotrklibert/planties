@@ -48,7 +48,6 @@ defmodule Relay.Buttons.Monitor do
   end
 
   def loop(state) do
-    import Keyword
     val = Gpio.read state[:pin_pid]
 
     if val != state[:prev_val], do:
