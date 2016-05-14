@@ -1,5 +1,6 @@
 - include: tasks/sync.yml
 
+
 - name: Generate vm.args
   template:
     src: config/vm.args
@@ -10,22 +11,21 @@
   args:
     chdir: "{{ project_path }}"
 
-- name: "Mix compile: {{ MENV }}"
+- name: Run mix compile
   shell: "{{ MENV }} mix compile"
   args:
     chdir: "{{ project_path }}"
 
 - name: Remove previous release
-  tags: build
   file:
     path: "{{ project_path }}/rel/planties"
     state: absent
 
 - name: Build Elixir release
-  shell:
-     "{{ MENV }} mix release --dev"
-  tags: build
+  shell: >-
+    {{ MENV }} mix release --dev
   args:
     chdir: "{{ project_path }}"
 
-- include: "tasks/restart_release.yml"
+
+- include: tasks/restart_release.yml

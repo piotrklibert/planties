@@ -1,3 +1,8 @@
+- name: Generate additional locale if needed
+  shell: locale-gen pl_PL.UTF-8
+  become: yes
+  when: ansible_distribution == "Ubuntu"
+
 - name: Ensure build directory exists
   file:
     path: "{{ build_root }}"
@@ -7,7 +12,6 @@
   unarchive:
     url: "http://erlang.org/download/{{ otp_basename }}.tar.gz"
     dest: "{{ otp_build_dir }}"
-
 
 - name: Configure Erlang build
   shell: >-
