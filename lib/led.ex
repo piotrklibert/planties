@@ -16,7 +16,7 @@ defmodule LED do
   def blink_many(times, wait \\ 400) do
     for _ <- 1 .. times do
       blink()
-      wait(wait)
+      Util.wait(wait)
     end
     :ok
   end

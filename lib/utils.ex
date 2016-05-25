@@ -1,8 +1,55 @@
+defmodule Component do
+  defmacro __using__(name: global_name) do
+    quote do
+      import GenServer
+      import Component
+      import Util
+      require Component
+      @global_name {:global, unquote(global_name)}
+    end
+  end
+
+  defmacro start_link() do
+    quote do
+      GenServer.start_link unquote(__CALLER__.module), [], name: @global_name
+    end
+  end
+
+  defmacro start_link(args) do
+    quote do
+      GenServer.start_link unquote(__CALLER__.module), unquote(args), name: @global_name
+    end
+  end
+
+  defmacro call(args) do
+    quote do
+      GenServer.call @global_name, args
+    end
+  end
+
+end
+
 defmodule Util do
   defmacro __using__(_) do
     quote do
       require Util
       import Util
+    end
+  end
+  use Bitwise
+
+  def get_bit(val, bit_num) do
+    val >>> bit_num &&& 0b0001
+  end
+
+  def set_bit(val, bit_num, 0), do: val - (1 <<< bit_num)
+  def set_bit(val, bit_num, 1), do: val + (1 <<< bit_num)
+
+  def to_bit(active?) do
+    case active? do
+      :on  -> 0
+      :off -> 1
+      any  -> any
     end
   end
 

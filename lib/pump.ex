@@ -1,6 +1,6 @@
 defmodule Pump do
+  use Component, name: :pump
   use Util
-  use GenServer
 
   require Logger
 
@@ -8,30 +8,27 @@ defmodule Pump do
   @chan1  19
   @chan2  26
 
-  @global_name {:global, :pump}
-
-  defpistart "Pump" do
-    Logger.info(
-      "Pump controller starting on pins #{@engine}, #{@chan1}, #{@chan2}..."
-    )
+  def start_link() do
+    Logger.info("Pump controller starting on pins: " <>
+                "#{@engine}, #{@chan1}, #{@chan2}...")
 
     Pins.set [{@engine, 0},
               {@chan1,  1},
               {@chan2,  0}]
 
-    GenServer.start_link __MODULE__, nil, name: @global_name
+    Component.start_link()
   end
 
-  def on(),       do: GenServer.call(@global_name, {:set_state, :on})
-  def off(),      do: GenServer.call(@global_name, {:set_state, :off})
+  def on(),       do: Component.call {:set_state, :on}
+  def off(),      do: Component.call {:set_state, :off}
 
-  def state(),    do: GenServer.call(@global_name, :get_state)
-  def power(val), do: GenServer.call(@global_name, {:set_power, val})
+  def state(),    do: Component.call :get_state
+  def power(val), do: Component.call {:set_power, val}
 
   # Server section
   # ----------------------------------------------------------------------------
 
-  def init(nil) do
+  def init([]) do
     {:ok, pid} = PWM.start_link(@engine)
     {:ok, %{pid: pid}}
   end

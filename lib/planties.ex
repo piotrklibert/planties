@@ -19,14 +19,14 @@ defmodule Planties do
   end
 
   def children(:pi), do: [
-    worker(LED, []),
-    worker(Humidity, []),
-    worker(Buzzer, []),
+    # worker(LED, []),
+    # worker(Humidity, []),
+    # worker(Buzzer, []),
     # worker(Ir, []),
-    worker(Temp, []),
+    # worker(Temp, []),
     worker(Relay, []),
     # worker(Ir.Player, []),
-    worker(Pins, [])
+    # worker(Pins, [])
     # worker(Fan, []),
     # worker(Pump, [])
   ]

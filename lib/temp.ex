@@ -10,18 +10,17 @@ defmodule Temp do
 
   The last value after the last '=' sign is a temperature in 1/1000 of *C.
   """
-  use GenServer
+  use Component
   use Util
 
-  @global_name {:global, :temp}
   @dir "/sys/bus/w1/devices/w1_bus_master1"
 
-  defpistart "Temp" do
+  def start_link() do
     # XXX: assumes a thermometer is always listed first in the list of
     # connectied devices!
     [slave_name | _] = File.read!("#{@dir}/w1_master_slaves") |> String.split
 
-    GenServer.start_link __MODULE__, slave_name, name: @global_name
+    Component.start_link slave_name
   end
 
   def get(), do: GenServer.call @global_name, :get

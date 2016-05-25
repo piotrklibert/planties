@@ -1,35 +1,39 @@
 defmodule Relay do
   use Bitwise
-  use GenServer
+  use Component
   use Util
 
   require Logger
-
+  defmodule State do
+    defstruct i2c: nil, val: nil
+  end
 
   @global_name {:global, :relay}
-  @i2c_id 0x20
+  @i2c_id 0x22
 
 
-  defpistart "i2c" do
+  def start_link() do
     Logger.info "Starting I2C handling for Relay Hat..."
     {:ok, pid} = I2c.start_link("i2c-1", @i2c_id)
-    Relay.Timer.start_link()
-    Relay.Buttons.start_link()
-    init_val = bnot(read_byte(pid))
-    GenServer.start_link(__MODULE__,
-                         %{i2c: pid, val: init_val},
-                         name: @global_name)
+
+    # TODO: Disabled, because the hardware changed, needs rewrite
+    # {:ok, _} = Relay.Timer.start_link()
+    # {:ok, _} = Relay.Buttons.start_link()
+
+    init_val = bnot(read_byte(pid)) # negated because of default Relay state (off)
+    state = %State{i2c: pid, val: init_val}
+    Component.start_link(state)
   end
 
 
   # Main API
-  def get(),          do: GenServer.call(@global_name, :get)
-  def get(relay_num), do: GenServer.call(@global_name, {:get, relay_num})
+  def get(),          do: Component.call(:get)
+  def get(relay_num), do: Component.call({:get, relay_num})
 
-  def set(val), do: GenServer.call(@global_name, {:send, val})
+  def set(val), do: Component.call({:send, val})
 
   def switch(relay_num, active?) do
-    GenServer.call(@global_name, {:switch, relay_num, active?})
+    Component.call({:switch, relay_num, active?})
   end
 
   def toggle(relay_num) do
@@ -83,25 +87,19 @@ defmodule Relay do
   end
 
   def handle_call({:get, relay_num}, _from, state) do
-    active? = (state.val &&& (1 <<< relay_num)) >>> relay_num
+    active? = Util.get_bit(state.val, relay_num)
     {:reply, active?, state}
   end
 
   def handle_call({:switch, num, 0}, _from, state) do
-    log(state.val, "switch0-1")
-    new_val = state.val &&& bnot(1 <<< num)
-    log(new_val, "switch0-2")
+    new_val = Utils.set_bit(state.val, num, 0)
     send_byte(state.i2c, new_val)
-    log(read_byte(state.i2c))
     make_reply(state, new_val)
   end
 
   def handle_call({:switch, num, 1}, _from, state) do
-    log(state.val, "switch1-1")
-    new_val = state.val ||| (1 <<< num)
-    log(new_val, "switch1-2")
+    new_val = Utils.set_bit(state.val, num, 1)
     send_byte(state.i2c, new_val)
-    log(read_byte(state.i2c))
     make_reply(state, new_val)
   end
 
@@ -120,7 +118,6 @@ defmodule Relay do
   # ----------------------------------------------------------------------------
 
   def send_byte(pid, val) do
-    log(val, "sending: ")
     I2c.write(pid, <<0x06, val :: size(8)>>)
   end
 
@@ -130,20 +127,8 @@ defmodule Relay do
   end
 
   defp make_reply(state, val) do
-    state = %{state | val: val}
+    state = %State{state | val: val}
     {:reply, fmt(val), state}
   end
 
-  defp log(val, msg \\ "Binary val: ") do
-    # IO.write(msg)
-    # IO.inspect(fmt(val))
-  end
-
-  defp to_bit(active?) do
-    case active? do
-      :on  -> 0
-      :off -> 1
-      any  -> any
-    end
-  end
 end

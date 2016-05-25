@@ -1,18 +1,16 @@
 defmodule Buzzer do
-  use GenServer
-  use Util
+  use Component, name: :buzz
 
-  @global_name {:global, :buzz}
   @pin 24
 
-  defpistart "Buzzer" do
-    GenServer.start_link __MODULE__, [], name: @global_name
+  def start_link() do
+    Component.start_link()
   end
 
   def beep(time \\ 500) do
-    GenServer.call @global_name, :on
+    Component.call :on
     Util.wait(time)
-    GenServer.call @global_name, :off
+    Component.call :off
   end
 
   # Server section
