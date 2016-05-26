@@ -4,4 +4,5 @@
     - localhost
   gather_facts: yes
   roles:
-    - update
+    - system
+    - nginx

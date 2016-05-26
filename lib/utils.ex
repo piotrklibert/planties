@@ -1,33 +1,42 @@
 defmodule Component do
-  defmacro __using__(name: global_name) do
+  # defmacro __before_compile__(_env) do
+  #   IO.inspect _env
+  # end
+  defmacro __using__([name: global_name]) do
     quote do
       import GenServer
       import Component
       import Util
       require Component
+      require Logger
+
       @global_name {:global, unquote(global_name)}
     end
   end
 
   defmacro start_link() do
     quote do
-      GenServer.start_link unquote(__CALLER__.module), [], name: @global_name
+      GenServer.start_link(unquote(__CALLER__.module),
+                           [],
+                           name: @global_name)
     end
   end
 
   defmacro start_link(args) do
     quote do
-      GenServer.start_link unquote(__CALLER__.module), unquote(args), name: @global_name
+      GenServer.start_link(unquote(__CALLER__.module),
+                           unquote(args),
+                           name: @global_name)
     end
   end
 
   defmacro call(args) do
     quote do
-      GenServer.call @global_name, args
+      GenServer.call @global_name, unquote(args)
     end
   end
-
 end
+
 
 defmodule Util do
   defmacro __using__(_) do

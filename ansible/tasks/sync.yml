@@ -1,8 +1,8 @@
 - name: Uploading code
   synchronize:
     src: "../../{{ project }}/"
-    dest: "{{ home_path }}/{{ project }}/"
-    delete: yes
+    dest: "{{ project_path }}/"
+    # delete: yes
     rsync_opts:
       - --exclude=deps
       - --exclude=_build
@@ -15,4 +15,4 @@
 
 - name: Update timestamps on files (force recompilation)
   shell: >-
-    touch {{ home_path }}/planties/lib/*
+    touch {{ project_path }}/lib/*

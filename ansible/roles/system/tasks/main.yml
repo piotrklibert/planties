@@ -1,28 +1,44 @@
-- name: Generate additional locale if needed
-  shell: locale-gen pl_PL.UTF-8
-  become: yes
-  when: ansible_distribution == "Ubuntu"
+---
+
+- name: Checking locale settings
+  shell: >-
+    localedef --list-archive | grep pl
+  register: locale_check
+
+- block:
+    - name: Generate additional locale if needed
+      lineinfile:
+        dest: /etc/locale.gen
+        line: >-
+          pl_PL.UTF-8 UTF-8
+      become: yes
+    - shell: locale-gen pl_PL.UTF-8
+      become: yes
+  when: locale_check.rc != 0
+
 
 - name: Ensure build directory exists
   file:
     path: "{{ build_root }}"
     state: directory
 
-- name: Download Erlang/OTP sources
-  unarchive:
-    url: "http://erlang.org/download/{{ otp_basename }}.tar.gz"
+- name: "Download Erlang/OTP sources to {{ otp_build_dir }}"
+  git:
+    repo: git@github.com:erlang/otp.git
     dest: "{{ otp_build_dir }}"
+    version: maint-18
+    update: no
 
 - name: Configure Erlang build
   shell: >-
-    ./configure --prefix="/usr"
+    ./otp_build setup --prefix="/usr/"
   args:
     creates: Makefile
     chdir: "{{ otp_build_dir }}"
 
 - name: Build Erlang
   shell: >-
-    make -j 8 && touch made
+    make -j 2 | tee "build.log" && touch made
   args:
     chdir: "{{ otp_build_dir }}"
     creates: "{{ otp_build_dir }}/made"

@@ -1,14 +1,10 @@
 defmodule Relay do
   use Bitwise
-  use Component
-  use Util
-
-  require Logger
+  use Component, name: :relay
   defmodule State do
     defstruct i2c: nil, val: nil
   end
 
-  @global_name {:global, :relay}
   @i2c_id 0x22
 
 

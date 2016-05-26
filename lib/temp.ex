@@ -10,7 +10,7 @@ defmodule Temp do
 
   The last value after the last '=' sign is a temperature in 1/1000 of *C.
   """
-  use Component
+  use Component, name: :temp
   use Util
 
   @dir "/sys/bus/w1/devices/w1_bus_master1"

@@ -10,12 +10,9 @@ defmodule Humidity do
   [1] http://ww1.microchip.com/downloads/en/DeviceDoc/22088b.pdf
   [2] https://github.com/fhunleth/elixir_ale
   """
-  use GenServer
-  use Util
-
+  use Component, name: :humidity
   require Logger
 
-  @global_name {:global, :humidity}
 
   @adc_id 0x6A
   @lsb 0.000_062_5  # A/D conversion resolution (in Volts, from datasheet)
@@ -23,15 +20,15 @@ defmodule Humidity do
   @max_vcc 2.14     # determined empirically
 
 
-  defpistart "i2c" do
+  def start_link() do
     Logger.info "Starting I2C handling for humidity sensor..."
     {:ok, pid} = I2c.start_link("i2c-1", @adc_id)
-    GenServer.start_link(__MODULE__, pid, name: @global_name)
+    Component.start_link(pid)
   end
 
 
   def get(pretty? \\ true) do
-    val = GenServer.call(@global_name, :get)
+    val = Component.call(:get)
     if pretty? do
       val |> _fmt
     else
@@ -39,10 +36,10 @@ defmodule Humidity do
     end
   end
 
-
   def _fmt(val) do
     "#{val |> trunc} %"
   end
+
 
   # Server API
 

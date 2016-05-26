@@ -12,7 +12,7 @@ defmodule Ir do
   The latter is a mapping from signal codes to human-readable strings and you
   have to write it by hand.
   """
-  use GenServer
+  use Component, name: :ir
   use Util
 
   @global_name {:global, :ir}
@@ -22,17 +22,17 @@ defmodule Ir do
     defstruct port: nil, listeners: []
   end
 
-  defpistart "Ir" do
-    GenServer.start_link __MODULE__, %State{}, name: @global_name
+  def start_link() do
+    Component.start_link(%State{})
   end
 
 
   def subscribe(pid) do
-    GenServer.call @global_name, {:subscribe, pid}
+    Component.call({:subscribe, pid}
   end
 
   def unsubscribe(pid) do
-    GenServer.call @global_name, {:unsubscribe, pid}
+    Component.call({:unsubscribe, pid}
   end
 
 

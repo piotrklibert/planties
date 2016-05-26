@@ -1,5 +1,9 @@
 - include: tasks/sync.yml
 
+- name: Make rel directory if needed
+  file:
+    state: directory
+    path: "{{ project_path }}/rel/"
 
 - name: Generate vm.args
   template:

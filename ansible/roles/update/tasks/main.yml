@@ -1,8 +1,8 @@
 - include: tasks/sync.yml
 
 - name: Compile release
-  shell:
-    "{{ MENV }} mix compile"
+  shell: >-
+    {{ MENV }} mix compile
   args:
     chdir: "{{ project_path }}"
 
