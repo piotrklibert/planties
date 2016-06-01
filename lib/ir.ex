@@ -28,11 +28,11 @@ defmodule Ir do
 
 
   def subscribe(pid) do
-    Component.call({:subscribe, pid}
+    Component.call({:subscribe, pid})
   end
 
   def unsubscribe(pid) do
-    Component.call({:unsubscribe, pid}
+    Component.call({:unsubscribe, pid})
   end
 
 
